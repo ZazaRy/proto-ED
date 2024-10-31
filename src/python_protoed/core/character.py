@@ -1,52 +1,19 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, DefaultDict, Dict, Any, Tuple, Optional
-from zope.interface import Interface, implementer, invariant, Attribute
-from zope.interface.verify import verifyObject
-from .dice import *
-
-MOVE = 1 << 0
-ATTACK = 1 << 1
-CAST_SPELL = 1 << 2
-TAKE_DAMAGE = 1 << 3
-
+from .dice import roll
+from random import randint as rand
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import DefaultDict, List, Tuple
 
-class ICombatLogger(Interface):
-    """Interface for a combat logger that logs events during combat."""
+STR = 1 << 0
+CON = 1 << 1
+DEX = 1 << 2
+INT = 1 << 3
+WIS = 1 << 4
+CHA = 1 << 5
 
-    log = Attribute("A nested dictionary to store combat events")
-
-    def log_event(event_type: int, message: str, round_number: int, turn_number: int):
-        """Logs an event in the combat logger with the given details."""
-
-    def display_log(filter_flags: int):
-        """Displays the log based on provided filter flags."""
-
-    @invariant
-    def validate_log_structure(self):
-        """Invariant to ensure 'log' is a properly structured dictionary."""
-        assert isinstance(self.log, dict), "'log' must be a dictionary structure"
-
-
-@implementer(ICombatLogger)
-@dataclass
-class ConsoleCombatLogger:
-    log: DefaultDict = field(default_factory=lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(str))))
-
-    def log_event(self, event_type: int, message: str, round_number: int, turn_number: int):
-        self.log[event_type][round_number][turn_number] = message
-
-    def display_log(self, filter_flags: int = 0b1110):
-        print("=== Combat Log ===")
-
-        for round_number, turns in sorted(self.log.items()):
-            for k, v in turns.items():
-                print(round_number, k,v)
-
-        print("=== End of Combat Log ===\n")
 
 @dataclass
 class StatBlock:
@@ -65,8 +32,7 @@ class Combatant:
     damage: int
     name: str
     id: int
-    logger: ICombatLogger
-    primary: str
+    primary: int
     primary_value: int = 0
     pb: int = 0
     dc: int = 0
@@ -75,33 +41,33 @@ class Combatant:
 
 
     def __post_init__(self):
-        if self.primary == "str":
+        if self.primary == STR:
             self.primary_value = self.statblock.stre
             self.dc = 8 + self.pb + self.statblock.stre
-        elif self.primary == "con":
+        elif self.primary == CON:
             self.primary_value = self.statblock.con
             self.dc = 8 + self.pb + self.statblock.con
-        elif self.primary == "dex":
+        elif self.primary == DEX:
             self.primary_value = self.statblock.dex
             self.dc = 8 + self.pb + self.statblock.dex
-        elif self.primary == "int":
+        elif self.primary == INT:
             self.primary_value = self.statblock.inte
             self.dc = 8 + self.pb + self.statblock.inte
-        elif self.primary == "wis":
+        elif self.primary == WIS:
             self.primary_value = self.statblock.wis
             self.dc = 8 + self.pb + self.statblock.wis
-        elif self.primary == "cha":
+        elif self.primary == CHA:
             self.primary_value = self.statblock.cha
             self.dc = 8 + self.pb + self.statblock.cha
         else:
             print("Invalid Primary Stat Name")
 
     def Attack(self, target: "Combatant"):
-        roll_to_hit = roll_d20() + self.attackRoll
+        roll_to_hit = roll(1,20) + self.attackRoll
         assert self.hp > 0, "Cannot attack when dead"
         assert self.name != target.name, f"{self.name} cannot attack {target.name}"
         if roll_to_hit >= target.ac:
-            damage = roll_d8() + self.damage
+            damage = roll(1,8) + self.damage
             target.take_damage(damage)
             print(f"{self.name} attacks {target.name} and hits for {damage} damage.")
         else:
@@ -115,7 +81,7 @@ class Combatant:
             print(f"{self.name} has been defeated!")
 
     def rollInitiative(self):
-        self.initiative = roll_d20() + self.statblock.dex
+        self.initiative = roll(1,20) + self.statblock.dex
         print(f"{self.name} rolls initiative: {self.initiative}.")
 
     def isAlive(self):
@@ -160,9 +126,9 @@ class Mage(Combatant):
 
     def spellAttack(self, target):
         spell = self.random_attack_spell_picker()
-        roll_to_hit = roll_d20() + self.primary_value + self.pb
+        roll_to_hit = roll(1,20) + self.primary_value + self.pb
         if roll_to_hit >= target.ac:
-            damage = rand(1,spell.spell.damage)
+            damage = roll(1,spell.spell.damage)
             target.take_damage(damage)
             print(f"{self.name} attacks {target.name} with {spell.spell.name} and hits for {damage} damage.")
         else:

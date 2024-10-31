@@ -8,14 +8,13 @@ from core.character import *
 
 
 def main():
-    combat_logger = ConsoleCombatLogger()
     t = init.Teams()
-    warrior = Combatant(hp=33, ac=14, attackRoll=5, id=1, damage=5, name="Warrior", primary="str", logger=combat_logger)
-    mage = Mage(hp=33, ac=14, attackRoll=2, id=1, damage=5, name="Mage", primary="int", logger=combat_logger)
-    gob_mage = Mage(hp=33, ac=14, attackRoll=2, id=2, damage=5, name="Goblin Mage", primary="int", logger=combat_logger)
-    goblin = Combatant(hp=33, ac=14, attackRoll=5, id=2, damage=5,  name="Goblin", primary="str", logger=combat_logger)
-    archer = Combatant(hp=33, ac=14, attackRoll=5, id=1, damage=5, name="Archer", primary="dex",  logger=combat_logger)
-    gob_archer = Combatant(hp=13, ac=14, attackRoll=5, id=2, damage=5, name="Goblin Archer", primary="dex", logger=combat_logger)
+    warrior = Combatant(hp=33, ac=14, attackRoll=5, id=1, damage=5, name="Warrior", primary=STR)
+    mage = Mage(hp=33, ac=14, attackRoll=2, id=1, damage=5, name="Mage", primary=INT)
+    gob_mage = Mage(hp=33, ac=14, attackRoll=2, id=2, damage=5, name="Goblin Mage", primary=INT)
+    goblin = Combatant(hp=33, ac=14, attackRoll=5, id=2, damage=5,  name="Goblin", primary=STR)
+    archer = Combatant(hp=33, ac=14, attackRoll=5, id=1, damage=5, name="Archer", primary=DEX)
+    gob_archer = Combatant(hp=13, ac=14, attackRoll=5, id=2, damage=5, name="Goblin Archer", primary=DEX)
     teams = [warrior,goblin, archer, gob_archer, mage, gob_mage]
     t.addToTracker(teams)
     t.splitTeams()
